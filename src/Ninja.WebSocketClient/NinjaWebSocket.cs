@@ -1,4 +1,5 @@
-﻿using System.Buffers;
+﻿using Ninja.WebSocketClient.Options;
+using System.Buffers;
 
 namespace Ninja.WebSocketClient
 {
@@ -22,10 +23,10 @@ namespace Ninja.WebSocketClient
         public event Func<Exception?, Task>? OnClosed;
         public event Func<ReadOnlySequence<byte>?, Task>? OnReceived;
 
-        public NinjaWebSocket(string url)
+        public NinjaWebSocket(string url, Headers? headers = null)
         {
             _url = url;
-            _webSocketPipe = new WebSocketDuplexPipe();
+            _webSocketPipe = new WebSocketDuplexPipe(headers);
         }
 
         public async Task StartAsync(CancellationToken ct = default)

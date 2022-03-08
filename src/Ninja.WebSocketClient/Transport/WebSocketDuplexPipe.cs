@@ -1,4 +1,5 @@
-﻿using System.IO.Pipelines;
+﻿using Ninja.WebSocketClient.Options;
+using System.IO.Pipelines;
 using System.Net.WebSockets;
 
 namespace Ninja.WebSocketClient
@@ -6,6 +7,7 @@ namespace Ninja.WebSocketClient
     internal class WebSocketDuplexPipe : IDuplexPipe
     {
         private ClientWebSocket? _webSocket;
+        private readonly Headers? _headers;
         private IDuplexPipe? _transport;
         private IDuplexPipe? _application;
         private volatile bool _aborted;
@@ -18,14 +20,22 @@ namespace Ninja.WebSocketClient
 
         public PipeWriter Output => _transport!.Output;
 
-        public WebSocketDuplexPipe()
+        public WebSocketDuplexPipe(Headers? headers = null)
         {
-
+            _headers = headers;
         }
 
         public async Task StartAsync(string url, CancellationToken ct = default)
         {
             _webSocket = new ClientWebSocket();
+
+            if (_headers != null)
+            {
+                foreach (var header in _headers)
+                {
+                    _webSocket.Options.SetRequestHeader(header.Key, header.Value);
+                }
+            }
 
             try
             {
@@ -100,7 +110,7 @@ namespace Ninja.WebSocketClient
         private async Task StartReceiving(WebSocket socket)
         {
             try
-            { 
+            {
                 while (true)
                 {
                     ValueWebSocketReceiveResult receiveResult;
